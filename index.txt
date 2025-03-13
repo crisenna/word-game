@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>意汉单词配对</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(45deg, #e3dcd2, #c4b9ac);
+            display: flex;
+            font-family: 'Arial Rounded MT Bold';
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        #uploadSection {
+            width: 200px;
+            padding: 20px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 10px;
+            margin: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        #gameContainer {
+            flex-grow: 1;
+            text-align: center;
+            position: relative;
+        }
+
+        .word-column {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px auto;
+            max-width: 800px;
+        }
+
+        .word-card {
+            padding: 18px;
+            margin: 5px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 18px;
+            color: #333;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #italianWords .word-card { 
+            background: #d4a373;
+            border: 2px solid transparent;
+        }
+        
+        #chineseWords .word-card { 
+            background: #6b8f9c;
+            border: 2px solid transparent;
+        }
+
+        .selected {
+            border: 2px solid #fff !important;
+            box-shadow: 0 0 12px rgba(255,255,255,0.5);
+            transform: translateY(-5px);
+        }
+
+        .correct-line {
+            position: absolute;
+            background: #8aa87f;
+            height: 3px;
+            transform-origin: left center;
+            z-index: 100;
+            animation: lineFade 1s forwards;
+        }
+
+        @keyframes lineFade {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .matched {
+            animation: matchFade 0.8s forwards;
+        }
+
+        @keyframes matchFade {
+            0% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.2);
+                background: #8aa87f;
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* 其他样式保持原有设计 */
+    </style>
+</head>
+<body>
+    <!-- 保持原有HTML结构 -->
+
+<script>
+// 修改后的匹配检查函数
+function checkMatch(itWord, cnWord) {
+    const isValid = words.some(w => w.italian === itWord && w.chinese === cnWord);
+    
+    if (isValid) {
+        // 创建连接线
+        const line = document.createElement('div');
+        line.className = 'correct-line';
+        const itRect = selected.it.getBoundingClientRect();
+        const cnRect = selected.cn.getBoundingClientRect();
+        
+        const dx = cnRect.left - itRect.right;
+        const dy = (cnRect.top + cnRect.height/2) - (itRect.top + itRect.height/2);
+        const length = Math.sqrt(dx*dx + dy*dy);
+        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+        
+        line.style.width = `${length}px`;
+        line.style.left = `${itRect.right}px`;
+        line.style.top = `${itRect.top + itRect.height/2}px`;
+        line.style.transform = `rotate(${angle}deg)`;
+        document.body.appendChild(line);
+
+        // 添加匹配动画
+        [selected.it, selected.cn].forEach(card => {
+            card.classList.add('matched');
+            card.style.pointerEvents = 'none';
+        });
+
+        // 清理元素
+        setTimeout(() => {
+            line.remove();
+            [selected.it, selected.cn].forEach(card => card.remove());
+            updateProgress();
+        }, 800);
+    } else {
+        [selected.it, selected.cn].forEach(card => {
+            card.classList.add('wrong');
+            card.style.backgroundColor = '#c1666b';
+            setTimeout(() => {
+                card.classList.remove('wrong');
+                card.style.backgroundColor = card.parentElement.id === 'italianWords' ? '#d4a373' : '#6b8f9c';
+            }, 1000);
+        });
+    }
+}
+</script>
+</body>
+</html>
